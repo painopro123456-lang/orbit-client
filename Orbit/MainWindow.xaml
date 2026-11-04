@@ -1,71 +1,87 @@
 <Window x:Class="Orbit.MainWindow"
  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
- Title="ORBIT" Width="1440" Height="900" MinWidth="1120" MinHeight="720"
+ Title="ORBIT" Width="1480" Height="940" MinWidth="1180" MinHeight="760"
  WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="CanResize"
- Background="{StaticResource Bg}" Foreground="{StaticResource TextPrimary}">
+ Background="#090B11" Foreground="#F5F6FC" FontFamily="Segoe UI Variable Display, Segoe UI">
  <Window.Resources>
-  <Style x:Key="NavButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-   <Setter Property="Background" Value="Transparent"/><Setter Property="BorderBrush" Value="Transparent"/>
-   <Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Padding" Value="15,12"/>
-   <Setter Property="Margin" Value="0,3"/>
+  <SolidColorBrush x:Key="Ink" Color="#090B11"/>
+  <SolidColorBrush x:Key="Panel" Color="#111621"/>
+  <SolidColorBrush x:Key="PanelRaised" Color="#171E2B"/>
+  <SolidColorBrush x:Key="Stroke" Color="#293244"/>
+  <SolidColorBrush x:Key="Muted" Color="#8D98AC"/>
+  <SolidColorBrush x:Key="Violet" Color="#A99BFF"/>
+  <Style x:Key="NavButton" TargetType="Button">
+   <Setter Property="Foreground" Value="#9DA7B8"/><Setter Property="Background" Value="Transparent"/>
+   <Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="15,12"/>
+   <Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="FontSize" Value="13"/>
+   <Setter Property="Margin" Value="0,3"/><Setter Property="Cursor" Value="Hand"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}"><ContentPresenter VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="#1A2130"/><Setter Property="Foreground" Value="#F2F3FA"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="b" Property="Opacity" Value=".7"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
   </Style>
-  <Style x:Key="Eyebrow" TargetType="TextBlock"><Setter Property="Foreground" Value="#8994A8"/><Setter Property="FontSize" Value="11"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="CharacterSpacing" Value="140"/></Style>
+  <Style x:Key="Card" TargetType="Border"><Setter Property="Background" Value="#121823"/><Setter Property="BorderBrush" Value="#283244"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="15"/></Style>
+  <Style x:Key="Eyebrow" TargetType="TextBlock"><Setter Property="Foreground" Value="#8994A8"/><Setter Property="FontSize" Value="10"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+  <Style TargetType="Button">
+   <Setter Property="Foreground" Value="#F5F6FC"/><Setter Property="Background" Value="#1B2230"/>
+   <Setter Property="BorderBrush" Value="#303B50"/><Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="Padding" Value="14,10"/><Setter Property="FontSize" Value="12"/><Setter Property="Cursor" Value="Hand"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="9" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Background" Value="#293247"/><Setter TargetName="bd" Property="BorderBrush" Value="#5A6480"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="bd" Property="Opacity" Value=".78"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="bd" Property="Opacity" Value=".4"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+  </Style>
  </Window.Resources>
  <Grid>
   <Grid.RowDefinitions><RowDefinition Height="42"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-  <Border Grid.Row="0" Background="#0D1017" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
-   <Grid><StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="18,0"><Border Width="19" Height="19" CornerRadius="6" Background="#9A8CFF"><TextBlock Text="O" Foreground="#10121A" FontWeight="Black" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="  ORBIT" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/><TextBlock Text="  /  MINECRAFT JAVA" Foreground="#697386" FontSize="10" VerticalAlignment="Center"/></StackPanel>
-   <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><Button Content="—" Width="46" Padding="0" Background="Transparent" BorderThickness="0" Click="Minimize_Click"/><Button Content="□" Width="46" Padding="0" Background="Transparent" BorderThickness="0" Click="Maximize_Click"/><Button Content="×" Width="46" Padding="0" Background="Transparent" BorderThickness="0" Click="Close_Click"/></StackPanel></Grid>
+  <Border Grid.Row="0" Background="#0C0F16" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown" BorderBrush="#1D2532" BorderThickness="0,0,0,1">
+   <Grid><StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="19,0"><Border Width="18" Height="18" CornerRadius="6" Background="#A99BFF"><TextBlock Text="O" Foreground="#11131A" FontWeight="Black" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="  ORBIT" FontWeight="Bold" FontSize="11" VerticalAlignment="Center"/><TextBlock Text="   /   MINECRAFT JAVA" Foreground="#657187" FontSize="9" VerticalAlignment="Center"/></StackPanel><StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><Button Content="—" Width="46" Padding="0" Background="Transparent" BorderThickness="0" Click="Minimize_Click"/><Button Content="□" Width="46" Padding="0" Background="Transparent" BorderThickness="0" Click="Maximize_Click"/><Button Content="×" Width="46" Padding="0" Background="Transparent" BorderThickness="0" Click="Close_Click"/></StackPanel></Grid>
   </Border>
   <Grid Grid.Row="1">
-   <Grid.ColumnDefinitions><ColumnDefinition Width="236"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-   <Border Grid.Column="0" Background="#0F131B" BorderBrush="#202735" BorderThickness="0,0,1,0">
-    <Grid Margin="16,22">
-     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="28"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-     <StackPanel Orientation="Horizontal" Margin="8,0,0,18"><Border Width="36" Height="36" CornerRadius="11" Background="#9A8CFF"><TextBlock Text="O" Foreground="#11131B" FontSize="22" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><StackPanel Margin="11,0,0,0" VerticalAlignment="Center"><TextBlock Text="ORBIT" FontSize="17" FontWeight="Bold"/><TextBlock Text="MINECRAFT LAUNCHER" FontSize="9" Foreground="#768197"/></StackPanel></StackPanel>
-     <TextBlock Grid.Row="1" Text="WORKSPACE" Style="{StaticResource Eyebrow}" VerticalAlignment="Center" Margin="10,0"/>
+   <Grid.ColumnDefinitions><ColumnDefinition Width="238"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+   <Border Grid.Column="0" Background="#0D1119" BorderBrush="#202938" BorderThickness="0,0,1,0">
+    <Grid Margin="16,22,16,17"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="26"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+     <StackPanel Orientation="Horizontal" Margin="8,0,0,25"><Border Width="38" Height="38" CornerRadius="12" Background="#A99BFF"><TextBlock Text="O" Foreground="#11131A" FontSize="23" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><StackPanel Margin="11,0,0,0" VerticalAlignment="Center"><TextBlock Text="ORBIT" FontSize="17" FontWeight="Bold"/><TextBlock Text="MINECRAFT, REIMAGINED" FontSize="8" Foreground="#77839A"/></StackPanel></StackPanel>
+     <TextBlock Grid.Row="1" Text="YOUR SPACE" Foreground="#69758B" FontSize="9" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0"/>
      <StackPanel Grid.Row="2">
-      <Button x:Name="HomeNav" Style="{StaticResource NavButton}" Content="  ◈     Overview" Background="#202034" BorderBrush="#383455" Click="Home_Click"/>
-      <Button Style="{StaticResource NavButton}" Content="  ▦     Instances" Click="Instances_Click"/>
-      <Button Style="{StaticResource NavButton}" Content="  ◇     Mods &amp; Modpacks" Click="Mods_Click"/>
-      <Button Style="{StaticResource NavButton}" Content="  ▤     Browse" Click="Browse_Click"/>
+      <Button Style="{StaticResource NavButton}" Content="◈    Overview" Background="#222039" Foreground="#E3DFFF" Click="Home_Click"/>
+      <Button Style="{StaticResource NavButton}" Content="▦    Instances" Click="Instances_Click"/>
+      <Button Style="{StaticResource NavButton}" Content="◇    Mods &amp; Modpacks" Click="Mods_Click"/>
+      <Button Style="{StaticResource NavButton}" Content="⌕    Discover" Click="Browse_Click"/>
      </StackPanel>
      <StackPanel Grid.Row="4">
-      <Border Height="1" Background="#252D3B" Margin="4,0,4,14"/>
-      <Button Style="{StaticResource NavButton}" Content="  ⚙     Settings" Click="Settings_Click"/>
-      <Border Background="#171D29" BorderBrush="#283143" BorderThickness="1" CornerRadius="12" Padding="12" Margin="4,15,4,0">
-       <StackPanel><TextBlock Text="YOUR ACCOUNT" FontSize="9" Foreground="#7D899D" FontWeight="Bold"/><TextBlock Text="Not signed in" FontSize="13" FontWeight="SemiBold" Margin="0,8,0,3"/><TextBlock Text="Connect Microsoft to play" FontSize="10" Foreground="#8994A8"/><Button Content="Sign in" Margin="0,12,0,0" Background="#28243F" BorderBrush="#5A508B" Click="SignIn_Click"/></StackPanel>
+      <Border Height="1" Background="#252D3B" Margin="4,0,4,13"/>
+      <Button Style="{StaticResource NavButton}" Content="⚙    Settings" Click="Settings_Click"/>
+      <Border Background="#151C28" BorderBrush="#2A3548" BorderThickness="1" CornerRadius="13" Padding="13" Margin="4,14,4,0">
+       <StackPanel><TextBlock Text="PLAYER PROFILE" Foreground="#7F8BA0" FontSize="9" FontWeight="Bold"/><StackPanel Orientation="Horizontal" Margin="0,11,0,0"><Border Width="32" Height="32" CornerRadius="10" Background="#252B3B"><TextBlock Text="?" Foreground="#B8C1D1" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><StackPanel Margin="9,0,0,0" VerticalAlignment="Center"><TextBlock Text="Guest player" FontSize="12" FontWeight="SemiBold"/><TextBlock Text="Microsoft account" FontSize="9" Foreground="#8490A4"/></StackPanel></StackPanel><Button Content="Connect account  ↗" Margin="0,12,0,0" Background="#282440" BorderBrush="#514A7D" Click="SignIn_Click"/></StackPanel>
       </Border>
-      <TextBlock Text="ORBIT  •  EARLY ACCESS" Foreground="#586275" FontSize="9" Margin="10,18,0,0"/>
+      <TextBlock Text="ORBIT  /  EARLY ACCESS" Foreground="#505D72" FontSize="8" Margin="10,17,0,0"/>
      </StackPanel>
     </Grid>
    </Border>
-   <Grid Grid.Column="1" Margin="34,25,34,28">
+   <Grid Grid.Column="1" Margin="34,25,34,26">
     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-    <Grid><StackPanel><TextBlock x:Name="PageEyebrow" Text="YOUR SPACE" Style="{StaticResource Eyebrow}"/><TextBlock x:Name="PageTitle" Text="Welcome back." FontSize="30" FontWeight="SemiBold" Margin="0,7,0,0"/><TextBlock x:Name="PageSubtitle" Text="Everything you need for your next world, in one place." Foreground="#8994A8" FontSize="13" Margin="0,6,0,0"/></StackPanel><Border HorizontalAlignment="Right" Background="#151B26" BorderBrush="#293244" BorderThickness="1" CornerRadius="9" Padding="12,8" VerticalAlignment="Top"><StackPanel Orientation="Horizontal"><Ellipse Width="7" Height="7" Fill="#D6A85D" Margin="0,0,8,0"/><TextBlock Text="NOT CONNECTED" FontSize="9" Foreground="#AAB3C2" FontWeight="SemiBold"/></StackPanel></Border></Grid>
-    <Grid Grid.Row="1" Margin="0,28,0,0">
-     <Grid.RowDefinitions><RowDefinition Height="2.1*"/><RowDefinition Height="Auto"/><RowDefinition Height="1.05*"/></Grid.RowDefinitions>
-     <Border Grid.Row="0" CornerRadius="20" ClipToBounds="True" BorderBrush="#34324D" BorderThickness="1">
-      <Grid>
-       <Grid.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#24233B" Offset="0"/><GradientStop Color="#171D2B" Offset=".52"/><GradientStop Color="#101720" Offset="1"/></LinearGradientBrush></Grid.Background>
-       <Canvas IsHitTestVisible="False" Opacity=".55"><Ellipse Width="410" Height="410" Canvas.Left="570" Canvas.Top="-175" Stroke="#7469B8" StrokeThickness="1"/><Ellipse Width="330" Height="330" Canvas.Left="610" Canvas.Top="-135" Stroke="#514A83" StrokeThickness="1"/><Ellipse Width="240" Height="240" Canvas.Left="655" Canvas.Top="-90" Stroke="#37365F" StrokeThickness="1"/><Ellipse Width="8" Height="8" Canvas.Left="900" Canvas.Top="95" Fill="#B4AAFF"/><Ellipse Width="4" Height="4" Canvas.Left="720" Canvas.Top="190" Fill="#A7A2DA"/></Canvas>
-       <Grid Margin="36"><Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
-        <StackPanel VerticalAlignment="Center"><Border Background="#302D4C" BorderBrush="#514A7D" BorderThickness="1" CornerRadius="6" Padding="9,5" HorizontalAlignment="Left"><TextBlock Text="THE NEXT SESSION STARTS HERE" FontSize="9" FontWeight="Bold" Foreground="#C5BFFF"/></Border><TextBlock Text="Your worlds.\nYour way." FontSize="43" LineHeight="51" FontWeight="SemiBold" Margin="0,19,0,10"/><TextBlock Text="A better home for Minecraft Java Edition." FontSize="13" Foreground="#A8B0C2"/><StackPanel Orientation="Horizontal" Margin="0,26,0,0"><Button Content="  ▶   PLAY MINECRAFT" Background="#A99DFF" Foreground="#171522" BorderBrush="#C3BAFF" FontWeight="Bold" Padding="21,13" Click="Play_Click"/><Button Content="Manage instances" Background="#25283A" BorderBrush="#454963" Margin="10,0,0,0" Padding="17,13" Click="Instances_Click"/></StackPanel></StackPanel>
-        <Grid Grid.Column="1" Margin="15,0,0,0"><Border Width="220" Height="220" CornerRadius="110" BorderBrush="#665D9E" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid><Ellipse Margin="17" Stroke="#514A83" StrokeThickness="1"/><Ellipse Margin="38" Stroke="#45416E" StrokeThickness="1"/><Ellipse Width="92" Height="92" Fill="#24213B" Stroke="#8C80D9" StrokeThickness="1.5"/><TextBlock Text="O" FontSize="58" FontWeight="Light" Foreground="#C2B9FF" HorizontalAlignment="Center" VerticalAlignment="Center"/></Grid></Border><TextBlock Text="EXPLORE • CREATE • PLAY" Foreground="#8D88BC" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,9"/></Grid>
+    <Grid><StackPanel><TextBlock x:Name="PageEyebrow" Text="YOUR SPACE" Style="{StaticResource Eyebrow}"/><TextBlock x:Name="PageTitle" Text="A world of your own." FontSize="29" FontWeight="SemiBold" Margin="0,5,0,0"/><TextBlock x:Name="PageSubtitle" Text="Your Minecraft setup, beautifully brought together." Foreground="#8E99AC" FontSize="12" Margin="0,5,0,0"/></StackPanel><Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#141B25" BorderBrush="#293548" BorderThickness="1" CornerRadius="9" Padding="11,8"><StackPanel Orientation="Horizontal"><Ellipse Width="6" Height="6" Fill="#D7A85D" Margin="0,0,8,0"/><TextBlock Text="ACCOUNT NOT CONNECTED" FontSize="9" Foreground="#AAB3C2" FontWeight="SemiBold"/></StackPanel></Border></Grid>
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,23,0,0">
+     <StackPanel>
+      <Border Height="326" CornerRadius="20" ClipToBounds="True" BorderBrush="#393552" BorderThickness="1">
+       <Grid>
+        <Grid.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#292744" Offset="0"/><GradientStop Color="#1A2030" Offset=".52"/><GradientStop Color="#101720" Offset="1"/></LinearGradientBrush></Grid.Background>
+        <Rectangle Opacity=".16"><Rectangle.Fill><RadialGradientBrush Center=".8,.4" RadiusX=".7" RadiusY=".9"><GradientStop Color="#B3A5FF" Offset="0"/><GradientStop Color="#5A528E" Offset=".35"/><GradientStop Color="#1A2030" Offset="1"/></RadialGradientBrush></Rectangle.Fill></Rectangle>
+        <Canvas IsHitTestVisible="False" Opacity=".6"><Ellipse Width="390" Height="390" Canvas.Left="590" Canvas.Top="-105" Stroke="#756CB0" StrokeThickness="1"/><Ellipse Width="310" Height="310" Canvas.Left="630" Canvas.Top="-65" Stroke="#5C548E" StrokeThickness="1"/><Ellipse Width="230" Height="230" Canvas.Left="670" Canvas.Top="-25" Stroke="#48436F" StrokeThickness="1"/><Ellipse Width="9" Height="9" Canvas.Left="865" Canvas.Top="82" Fill="#C5BBFF"/><Ellipse Width="4" Height="4" Canvas.Left="702" Canvas.Top="212" Fill="#C5BBFF"/></Canvas>
+        <Grid Margin="35,29"><Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+         <StackPanel VerticalAlignment="Center"><Border Background="#3A355C" BorderBrush="#625A96" BorderThickness="1" CornerRadius="6" Padding="9,5" HorizontalAlignment="Left"><TextBlock Text="A BETTER WAY TO PLAY" Foreground="#D0C9FF" FontSize="8" FontWeight="Bold"/></Border><TextBlock Text="Make room\nfor adventure." FontSize="43" LineHeight="49" FontWeight="SemiBold" Margin="0,17,0,9"/><TextBlock Text="One home for every world, modpack and idea." FontSize="12" Foreground="#B1B7C9"/><StackPanel Orientation="Horizontal" Margin="0,24,0,0"><Button Content="▶   PLAY MINECRAFT" Background="#B3A8FF" BorderBrush="#D0C9FF" Foreground="#171522" FontWeight="Bold" Padding="19,13" Click="Play_Click"/><Button Content="Your instances" Background="#262A3B" BorderBrush="#4B506A" Margin="9,0,0,0" Padding="15,13" Click="Instances_Click"/></StackPanel></StackPanel>
+         <Grid Grid.Column="1" Margin="5,0,0,0"><Border Width="226" Height="226" CornerRadius="113" BorderBrush="#756BAF" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid><Ellipse Margin="17" Stroke="#5F578F" StrokeThickness="1"/><Ellipse Margin="39" Stroke="#4B4776" StrokeThickness="1"/><Ellipse Width="105" Height="105" Fill="#24223C" Stroke="#A79BEF" StrokeThickness="1.5"/><TextBlock Text="O" FontSize="67" FontWeight="Light" Foreground="#D0C8FF" HorizontalAlignment="Center" VerticalAlignment="Center"/></Grid></Border><TextBlock Text="EXPLORE  •  CREATE  •  PLAY" Foreground="#A7A0D1" FontSize="8" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,5"/></Grid>
+        </Grid>
        </Grid>
+      </Border>
+      <Grid Margin="0,19,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+       <Border Grid.Column="0" Style="{StaticResource Card}" Padding="16" Margin="0,0,8,0"><StackPanel><TextBlock Text="GAME VERSION" Style="{StaticResource Eyebrow}"/><StackPanel Orientation="Horizontal" Margin="0,9,0,2"><TextBlock Text="26.2" FontSize="24" FontWeight="SemiBold"/><Border Background="#202C32" CornerRadius="5" Padding="6,3" Margin="9,7,0,4"><TextBlock Text="TARGET" Foreground="#92CBB0" FontSize="8" FontWeight="Bold"/></Border></StackPanel><TextBlock Text="Choose your Minecraft release" Foreground="#8792A5" FontSize="9"/></StackPanel></Border>
+       <Border Grid.Column="1" Style="{StaticResource Card}" Padding="16" Margin="4,0"><StackPanel><TextBlock Text="YOUR INSTANCES" Style="{StaticResource Eyebrow}"/><TextBlock Text="Ready when you are" FontSize="16" FontWeight="SemiBold" Margin="0,11,0,3"/><TextBlock Text="Create separate game profiles" Foreground="#8792A5" FontSize="9"/></StackPanel></Border>
+       <Border Grid.Column="2" Style="{StaticResource Card}" Padding="16" Margin="8,0,0,0"><StackPanel><TextBlock Text="MOD ECOSYSTEM" Style="{StaticResource Eyebrow}"/><TextBlock Text="Make it yours" FontSize="16" FontWeight="SemiBold" Margin="0,11,0,3"/><TextBlock Text="Modrinth  •  CurseForge" Foreground="#8792A5" FontSize="9"/></StackPanel></Border>
       </Grid>
-     </Border>
-     <Grid Grid.Row="1" Margin="0,22,0,18"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-      <Border Grid.Column="0" Background="#131923" BorderBrush="#273142" BorderThickness="1" CornerRadius="13" Padding="17" Margin="0,0,9,0"><StackPanel><TextBlock Text="GAME VERSION" Style="{StaticResource Eyebrow}"/><TextBlock Text="26.2" FontSize="24" FontWeight="SemiBold" Margin="0,8,0,2"/><TextBlock Text="Select a version in Instances" Foreground="#8792A5" FontSize="10"/></StackPanel></Border>
-      <Border Grid.Column="1" Background="#131923" BorderBrush="#273142" BorderThickness="1" CornerRadius="13" Padding="17" Margin="5,0"><StackPanel><TextBlock Text="ACTIVE INSTANCE" Style="{StaticResource Eyebrow}"/><TextBlock Text="Not configured" FontSize="17" FontWeight="SemiBold" Margin="0,12,0,5"/><TextBlock Text="Create your first profile" Foreground="#8792A5" FontSize="10"/></StackPanel></Border>
-      <Border Grid.Column="2" Background="#131923" BorderBrush="#273142" BorderThickness="1" CornerRadius="13" Padding="17" Margin="9,0,0,0"><StackPanel><TextBlock Text="MOD SUPPORT" Style="{StaticResource Eyebrow}"/><TextBlock Text="Ready to set up" FontSize="17" FontWeight="SemiBold" Margin="0,12,0,5"/><TextBlock Text="Fabric • Forge • NeoForge" Foreground="#8792A5" FontSize="10"/></StackPanel></Border>
-     </Grid>
-     <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition Width="1.25*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
-      <Border Grid.Column="0" Background="#131923" BorderBrush="#273142" BorderThickness="1" CornerRadius="14" Padding="20" Margin="0,0,9,0"><StackPanel><TextBlock Text="GETTING STARTED" Style="{StaticResource Eyebrow}"/><TextBlock Text="Set up your launcher" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,13"/><TextBlock Text="01   Connect your Microsoft account" Foreground="#C7CEDA" FontSize="12" Margin="0,4"/><TextBlock Text="02   Choose a Minecraft version" Foreground="#C7CEDA" FontSize="12" Margin="0,4"/><TextBlock Text="03   Create an instance and play" Foreground="#C7CEDA" FontSize="12" Margin="0,4"/></StackPanel></Border>
-      <Border Grid.Column="1" Background="#131923" BorderBrush="#273142" BorderThickness="1" CornerRadius="14" Padding="20" Margin="9,0,0,0"><StackPanel><TextBlock Text="BUILT FOR YOUR SETUP" Style="{StaticResource Eyebrow}"/><TextBlock Text="One launcher. More control." FontSize="18" FontWeight="SemiBold" Margin="0,8,0,8"/><TextBlock Text="Separate game instances, mod loaders, memory controls and modpack management — designed to stay organized." Foreground="#929DB0" FontSize="11" TextWrapping="Wrap" LineHeight="18"/><Button Content="Explore features  →" HorizontalAlignment="Left" Margin="0,13,0,0" Click="Browse_Click"/></StackPanel></Border>
-     </Grid>
-    </Grid>
+      <Grid Margin="0,20,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+       <Border Grid.Column="0" Style="{StaticResource Card}" Padding="19" Margin="0,0,8,0"><StackPanel><Grid><TextBlock Text="QUICK START" Style="{StaticResource Eyebrow}"/><TextBlock Text="Your next world is three steps away" FontSize="17" FontWeight="SemiBold" Margin="0,8,0,15"/></Grid><StackPanel Orientation="Horizontal" Margin="0,5"><Border Width="25" Height="25" CornerRadius="8" Background="#282440"><TextBlock Text="1" Foreground="#C5BCFF" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" FontWeight="Bold"/></Border><StackPanel Margin="10,0"><TextBlock Text="Connect Microsoft" FontSize="11" FontWeight="SemiBold"/><TextBlock Text="Sign in to your Minecraft account" Foreground="#8490A4" FontSize="9"/></StackPanel></StackPanel><StackPanel Orientation="Horizontal" Margin="0,11,0,5"><Border Width="25" Height="25" CornerRadius="8" Background="#202A36"><TextBlock Text="2" Foreground="#AFC4D8" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" FontWeight="Bold"/></Border><StackPanel Margin="10,0"><TextBlock Text="Create an instance" FontSize="11" FontWeight="SemiBold"/><TextBlock Text="Pick a version and mod loader" Foreground="#8490A4" FontSize="9"/></StackPanel></StackPanel><StackPanel Orientation="Horizontal" Margin="0,5"><Border Width="25" Height="25" CornerRadius="8" Background="#202A36"><TextBlock Text="3" Foreground="#AFC4D8" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" FontWeight="Bold"/></Border><StackPanel Margin="10,0"><TextBlock Text="Launch and play" FontSize="11" FontWeight="SemiBold"/><TextBlock Text="Your worlds, organized in one place" Foreground="#8490A4" FontSize="9"/></StackPanel></StackPanel></StackPanel></Border>
+       <Border Grid.Column="1" Style="{StaticResource Card}" Padding="19" Margin="8,0,0,0"><StackPanel><TextBlock Text="MADE FOR YOUR GAME" Style="{StaticResource Eyebrow}"/><TextBlock Text="A launcher that stays out of your way." FontSize="17" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,8,0,8"/><TextBlock Text="Independent instances. Flexible Java and memory settings. Modpacks from the places you already trust. All wrapped in one focused desktop experience." Foreground="#929DB0" FontSize="10" TextWrapping="Wrap" LineHeight="17"/><Button Content="Explore ORBIT  →" HorizontalAlignment="Left" Margin="0,15,0,0" Click="Browse_Click"/></StackPanel></Border>
+      </Grid>
+      <TextBlock Text="ORBIT IS IN EARLY ACCESS — FEATURES ARE BEING BUILT." Foreground="#59657A" FontSize="8" HorizontalAlignment="Center" Margin="0,17,0,3"/>
+     </StackPanel>
+    </ScrollViewer>
    </Grid>
   </Grid>
  </Grid>
