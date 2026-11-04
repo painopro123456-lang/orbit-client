@@ -466,6 +466,11 @@ public partial class MainWindow : Window
     private static int ReadInt(JsonElement element, string name) =>
         element.TryGetProperty(name, out var value) && value.TryGetInt32(out var number) ? number : 0;
 
+    private void SearchResultsList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        InstallSelectedButton.IsEnabled = SearchResultsList.SelectedItem is not null && !_busy;
+    }
+
     private async void InstallSelected_Click(object sender, RoutedEventArgs e)
     {
         if (_busy) return;
