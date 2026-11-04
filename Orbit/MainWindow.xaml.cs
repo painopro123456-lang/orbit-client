@@ -403,8 +403,8 @@ public partial class MainWindow : Window
         var root = Path.Combine(DataDirectory, "instances");
         Directory.CreateDirectory(root);
         var folders = Directory.GetDirectories(root)
-            .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase)
-            .Select(Path.GetFileName)
+            .OrderBy(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)
+            .Select(path => Path.GetFileName(path))
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .ToList();
         InstanceList.ItemsSource = folders;
