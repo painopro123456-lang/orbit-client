@@ -37,16 +37,22 @@ internal static class CurseForgeService
 
     private static string? GetApiKey()
     {
-        if (!File.Exists(KeyPath)) return null;
-        try
+        // A per-user key overrides the app's bundled key. The bundled key is
+        // injected only by the private Windows release workflow from a GitHub Secret.
+        if (File.Exists(KeyPath))
         {
-            var clear = ProtectedData.Unprotect(File.ReadAllBytes(KeyPath), null, DataProtectionScope.CurrentUser);
-            return Encoding.UTF8.GetString(clear);
+            try
+            {
+                var clear = ProtectedData.Unprotect(File.ReadAllBytes(KeyPath), null, DataProtectionScope.CurrentUser);
+                return Encoding.UTF8.GetString(clear);
+            }
+            catch (CryptographicException)
+            {
+                throw new InvalidOperationException("The saved CurseForge API key cannot be decrypted for this Windows account. Please remove it in ORBIT Settings and restart.");
+            }
         }
-        catch (CryptographicException)
-        {
-            throw new InvalidOperationException("The saved CurseForge API key cannot be decrypted for this Windows account. Please enter it again in ORBIT Settings.");
-        }
+
+        return CurseForgeBuildConfig.ApiKey;
     }
 
     private static async Task<JsonDocument> GetJsonAsync(string path)
