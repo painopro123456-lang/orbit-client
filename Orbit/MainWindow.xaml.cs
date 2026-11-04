@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     private MinecraftLauncher? _minecraftLauncher;
     private Process? _gameProcess;
     private bool _busy;
+    private string _modpackSource = "Modrinth";
 
     public MainWindow()
     {
@@ -320,26 +321,94 @@ public partial class MainWindow : Window
         PageSubtitle.Text = subtitle;
     }
 
-    private void Home_Click(object sender, RoutedEventArgs e) =>
-        SetPage("YOUR SPACE", "Welcome back.", "Everything you need for your next world, in one place.");
-
-    private void Instances_Click(object sender, RoutedEventArgs e) =>
-        SetPage("YOUR LIBRARY", "Instances", "Instance management is the next ORBIT milestone.");
-
-    private async void Mods_Click(object sender, RoutedEventArgs e)
+    private void Home_Click(object sender, RoutedEventArgs e)
     {
-        SetPage("CUSTOMIZE YOUR GAME", "Mod Manager", "Browse and install mods from Modrinth or CurseForge.");
-        var provider = MessageBox.Show("Choose your mod source.\n\nYes = Modrinth\nNo = CurseForge", "ORBIT Mod Manager", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
-        if (provider == MessageBoxResult.Yes) await SearchAndInstallAsync("mod");
-        else if (provider == MessageBoxResult.No) await SearchAndInstallCurseForgeAsync(false);
+        HomePanel.Visibility = Visibility.Visible;
+        LibraryPanel.Visibility = Visibility.Collapsed;
+        SetPage("YOUR SPACE", "Welcome back.", "Everything you need for your next world, in one place.");
     }
 
-    private async void Browse_Click(object sender, RoutedEventArgs e)
+    private void Instances_Click(object sender, RoutedEventArgs e) => ShowLibraryPage(false);
+
+    private void Mods_Click(object sender, RoutedEventArgs e) => ShowLibraryPage(true);
+
+    private void Browse_Click(object sender, RoutedEventArgs e) => ShowLibraryPage(true);
+
+    private void ShowLibraryPage(bool showModpacks)
     {
-        SetPage("DISCOVER", "Modpacks", "Browse and install modpacks from Modrinth or CurseForge.");
-        var provider = MessageBox.Show("Choose your modpack source.\n\nYes = Modrinth\nNo = CurseForge", "ORBIT Modpacks", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
-        if (provider == MessageBoxResult.Yes) await SearchAndInstallAsync("modpack");
-        else if (provider == MessageBoxResult.No) await SearchAndInstallCurseForgeAsync(true);
+        HomePanel.Visibility = Visibility.Collapsed;
+        LibraryPanel.Visibility = Visibility.Visible;
+        SetPage("YOUR LIBRARY", "Instances", "Your game profiles and installed modpacks, together.");
+        if (showModpacks) ShowModpacksTab();
+        else ShowInstancesTab();
+    }
+
+    private void InstancesTab_Click(object sender, RoutedEventArgs e) => ShowInstancesTab();
+
+    private void ModpacksTab_Click(object sender, RoutedEventArgs e) => ShowModpacksTab();
+
+    private void ShowInstancesTab()
+    {
+        InstancesTabPanel.Visibility = Visibility.Visible;
+        ModpacksTabPanel.Visibility = Visibility.Collapsed;
+        InstancesTabButton.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(40, 36, 64));
+        InstancesTabButton.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(98, 90, 150));
+        ModpacksTabButton.ClearValue(System.Windows.Controls.Control.BackgroundProperty);
+        RefreshInstances();
+    }
+
+    private void ShowModpacksTab()
+    {
+        InstancesTabPanel.Visibility = Visibility.Collapsed;
+        ModpacksTabPanel.Visibility = Visibility.Visible;
+        ModpacksTabButton.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(40, 36, 64));
+        ModpacksTabButton.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(98, 90, 150));
+        InstancesTabButton.ClearValue(System.Windows.Controls.Control.BackgroundProperty);
+        SetModpackSource(_modpackSource);
+    }
+
+    private void ModrinthSource_Click(object sender, RoutedEventArgs e) => SetModpackSource("Modrinth");
+
+    private void CurseForgeSource_Click(object sender, RoutedEventArgs e) => SetModpackSource("CurseForge");
+
+    private void SetModpackSource(string source)
+    {
+        _modpackSource = source;
+        var selected = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(40, 36, 64));
+        var normal = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(27, 34, 48));
+        ModrinthSourceButton.Background = source == "Modrinth" ? selected : normal;
+        CurseForgeSourceButton.Background = source == "CurseForge" ? selected : normal;
+        ModrinthSourceButton.BorderBrush = source == "Modrinth" ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(98, 90, 150)) : normal;
+        CurseForgeSourceButton.BorderBrush = source == "CurseForge" ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(98, 90, 150)) : normal;
+        ModpackSourceTitle.Text = source + " modpacks";
+        ModpackSourceDescription.Text = source == "Modrinth"
+            ? "Search Modrinth and install a modpack into its own instance."
+            : "Search CurseForge and install a modpack into its own instance.";
+    }
+
+    private async void BrowseModpacks_Click(object sender, RoutedEventArgs e)
+    {
+        if (_busy) return;
+        if (_modpackSource == "Modrinth")
+            await SearchAndInstallAsync("modpack");
+        else
+            await SearchAndInstallCurseForgeAsync(true);
+        RefreshInstances();
+    }
+
+    private void RefreshInstances_Click(object sender, RoutedEventArgs e) => RefreshInstances();
+
+    private void RefreshInstances()
+    {
+        var root = Path.Combine(DataDirectory, "instances");
+        Directory.CreateDirectory(root);
+        var folders = Directory.GetDirectories(root)
+            .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase)
+            .Select(Path.GetFileName)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .ToList();
+        InstanceList.ItemsSource = folders;
+        InstancesEmptyText.Visibility = folders.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private async Task SearchAndInstallAsync(string projectType)
