@@ -58,7 +58,7 @@
     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
     <Grid><StackPanel><TextBlock x:Name="PageEyebrow" Text="YOUR SPACE" Style="{StaticResource Eyebrow}"/><TextBlock x:Name="PageTitle" Text="A world of your own." FontSize="29" FontWeight="SemiBold" Margin="0,5,0,0"/><TextBlock x:Name="PageSubtitle" Text="Your Minecraft setup, beautifully brought together." Foreground="#8E99AC" FontSize="12" Margin="0,5,0,0"/></StackPanel><Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#141B25" BorderBrush="#293548" BorderThickness="1" CornerRadius="9" Padding="11,8"><StackPanel Orientation="Horizontal"><Ellipse x:Name="ConnectionBadgeDot" Width="6" Height="6" Fill="#D7A85D" Margin="0,0,8,0"/><TextBlock x:Name="ConnectionBadgeText" Text="ACCOUNT NOT CONNECTED" FontSize="9" Foreground="#AAB3C2" FontWeight="SemiBold"/></StackPanel></Border></Grid>
     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,23,0,0">
-     <StackPanel>
+     <StackPanel x:Name="HomePanel">
       <Border Height="326" CornerRadius="20" ClipToBounds="True" BorderBrush="#393552" BorderThickness="1">
        <Grid>
         <Grid.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#292744" Offset="0"/><GradientStop Color="#1A2030" Offset=".52"/><GradientStop Color="#101720" Offset="1"/></LinearGradientBrush></Grid.Background>
@@ -82,6 +82,35 @@
       </Grid>
       <TextBlock Text="ORBIT IS IN EARLY ACCESS — FEATURES ARE BEING BUILT." Foreground="#59657A" FontSize="8" HorizontalAlignment="Center" Margin="0,17,0,3"/>
      </StackPanel>
+      <StackPanel x:Name="LibraryPanel" Visibility="Collapsed">
+       <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+        <Button x:Name="InstancesTabButton" Content="Instances" Background="#282440" BorderBrush="#625A96" Click="InstancesTab_Click"/>
+        <Button x:Name="ModpacksTabButton" Content="Modpacks" Margin="8,0,0,0" Click="ModpacksTab_Click"/>
+       </StackPanel>
+       <StackPanel x:Name="InstancesTabPanel">
+        <TextBlock Text="YOUR INSTANCES" Style="{StaticResource Eyebrow}"/>
+        <TextBlock Text="Your game profiles" FontSize="19" FontWeight="SemiBold" Margin="0,5,0,12"/>
+        <TextBlock x:Name="InstancesEmptyText" Text="No instances yet. Install a modpack to create your first one." Foreground="#929DB0" FontSize="11" Margin="0,4,0,14"/>
+        <ItemsControl x:Name="InstanceList"/>
+        <Button Content="Refresh instances" HorizontalAlignment="Left" Margin="0,12,0,0" Click="RefreshInstances_Click"/>
+       </StackPanel>
+       <StackPanel x:Name="ModpacksTabPanel" Visibility="Collapsed">
+        <TextBlock Text="MODPACK LIBRARY" Style="{StaticResource Eyebrow}"/>
+        <TextBlock Text="Discover your next world." FontSize="19" FontWeight="SemiBold" Margin="0,5,0,6"/>
+        <TextBlock Text="Choose a source below. You can switch sources here anytime—no pop-up." Foreground="#929DB0" FontSize="11" Margin="0,0,0,16"/>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+         <Button x:Name="ModrinthSourceButton" Content="Modrinth" Background="#282440" BorderBrush="#625A96" Click="ModrinthSource_Click"/>
+         <Button x:Name="CurseForgeSourceButton" Content="CurseForge" Margin="8,0,0,0" Click="CurseForgeSource_Click"/>
+        </StackPanel>
+        <Border Style="{StaticResource Card}" Padding="20">
+         <StackPanel>
+          <TextBlock x:Name="ModpackSourceTitle" Text="Modrinth modpacks" FontSize="16" FontWeight="SemiBold"/>
+          <TextBlock x:Name="ModpackSourceDescription" Text="Search Modrinth and install a modpack into its own instance." Foreground="#929DB0" FontSize="10" Margin="0,6,0,15" TextWrapping="Wrap"/>
+          <Button x:Name="BrowseModpacksButton" Content="Browse modpacks" HorizontalAlignment="Left" Background="#B3A8FF" BorderBrush="#D0C9FF" Foreground="#171522" FontWeight="Bold" Click="BrowseModpacks_Click"/>
+         </StackPanel>
+        </Border>
+       </StackPanel>
+      </StackPanel>
     </ScrollViewer>
    </Grid>
   </Grid>
