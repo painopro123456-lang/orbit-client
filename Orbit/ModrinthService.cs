@@ -1,3 +1,7 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json;
@@ -50,7 +54,9 @@ internal static class ModrinthService
         {
             var relative = file.GetProperty("path").GetString() ?? "";
             var destination = SafeDestination(folder, relative);
-            var url = file.GetProperty("downloads").EnumerateArray().FirstOrDefault().GetString();
+            var downloads = file.GetProperty("downloads").EnumerateArray().ToList();
+            if (downloads.Count == 0) continue;
+            var url = downloads[0].GetString();
             if (!string.IsNullOrWhiteSpace(url)) await DownloadAsync(url, destination);
         }
         foreach (var entry in zip.Entries.Where(e => e.FullName.StartsWith("overrides/", StringComparison.OrdinalIgnoreCase)))
