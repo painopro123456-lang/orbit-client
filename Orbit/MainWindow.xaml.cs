@@ -334,7 +334,16 @@ public partial class MainWindow : Window
 
     private void Instances_Click(object sender, RoutedEventArgs e) => ShowLibraryPage(false);
 
-    private void Mods_Click(object sender, RoutedEventArgs e) => ShowLibraryPage(true);
+    private void Mods_Click(object sender, RoutedEventArgs e)
+    {
+        HomePanel.Visibility = Visibility.Collapsed;
+        LibraryPanel.Visibility = Visibility.Visible;
+        InstancesTabPanel.Visibility = Visibility.Collapsed;
+        ModpacksTabPanel.Visibility = Visibility.Collapsed;
+        InstalledModsPanel.Visibility = Visibility.Visible;
+        SetPage("YOUR LIBRARY", "Mods", "Manage the mods inside any installed modpack.");
+        RefreshModInstanceChoices();
+    }
 
     private void Browse_Click(object sender, RoutedEventArgs e) => ShowLibraryPage(true);
 
@@ -343,7 +352,7 @@ public partial class MainWindow : Window
         HomePanel.Visibility = Visibility.Collapsed;
         LibraryPanel.Visibility = Visibility.Visible;
         InstalledModsPanel.Visibility = Visibility.Collapsed;
-        SetPage("YOUR LIBRARY", "Instances", "Your game profiles and installed modpacks, together.");
+        SetPage("YOUR LIBRARY", "Modpacks", "Every installed modpack lives here as its own game instance.");
         if (showModpacks) ShowModpacksTab();
         else ShowInstancesTab();
     }
@@ -548,7 +557,7 @@ public partial class MainWindow : Window
         InstancesTabPanel.Visibility = Visibility.Collapsed;
         ModpacksTabPanel.Visibility = Visibility.Collapsed;
         InstalledModsPanel.Visibility = Visibility.Visible;
-        SetPage("YOUR LIBRARY", "Installed mods", "Enable, disable and remove JAR files in each instance.");
+        SetPage("YOUR LIBRARY", "Mods", "Enable, disable and remove mods inside your selected modpack.");
         RefreshModInstanceChoices();
     }
 
