@@ -116,7 +116,7 @@
            <Button Grid.Column="1" Content="Search" Margin="9,0,0,0" Background="#B3A8FF" Foreground="#171522" FontWeight="Bold" Click="SearchContent_Click"/>
           </Grid>
           <TextBlock x:Name="SearchStatusText" Text="Search Modrinth or CurseForge to discover modpacks." Foreground="#93A1B5" FontSize="10" Margin="0,0,0,10"/>
-          <ListBox x:Name="SearchResultsList" Background="Transparent" BorderThickness="0" Foreground="#F4F6FB" MinHeight="80" MaxHeight="330" SelectionMode="Single">
+          <ListBox x:Name="SearchResultsList" Background="Transparent" BorderThickness="0" Foreground="#F4F6FB" MinHeight="80" MaxHeight="330" SelectionMode="Single" SelectionChanged="SearchResultsList_SelectionChanged">
            <ListBox.ItemTemplate><DataTemplate><Border Background="#172231" BorderBrush="#2C3B4E" BorderThickness="1" CornerRadius="12" Padding="13" Margin="0,0,0,8"><StackPanel><TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"/><TextBlock Text="{Binding Summary}" Foreground="#9EACBE" FontSize="10" TextWrapping="Wrap" Margin="0,5,0,0"/><TextBlock Text="{Binding Meta}" Foreground="#B8ACFF" FontSize="9" Margin="0,7,0,0"/></StackPanel></Border></DataTemplate></ListBox.ItemTemplate>
           </ListBox>
           <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
