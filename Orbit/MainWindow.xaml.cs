@@ -328,28 +328,56 @@ public partial class MainWindow : Window
 
     private async void Mods_Click(object sender, RoutedEventArgs e)
     {
-        SetPage("CUSTOMIZE YOUR GAME", "Mod Manager", "Browse Modrinth mods and manage instance files.");
-        try
-        {
-            using var results = await ModrinthService.SearchAsync("", "mod");
-            var titles = results.RootElement.GetProperty("hits").EnumerateArray()
-                .Select(hit => hit.GetProperty("title").GetString()).Take(12);
-            MessageBox.Show(string.Join(Environment.NewLine, titles), "ORBIT - Modrinth mods");
-        }
-        catch (Exception ex) { ShowError("Modrinth search failed", ex); }
+        SetPage("CUSTOMIZE YOUR GAME", "Mod Manager", "Browse and install mods from Modrinth.");
+        await SearchAndInstallAsync("mod");
     }
 
     private async void Browse_Click(object sender, RoutedEventArgs e)
     {
-        SetPage("DISCOVER", "Modpacks", "Browse Modrinth modpacks.");
+        SetPage("DISCOVER", "Modpacks", "Browse and install Modrinth modpacks.");
+        await SearchAndInstallAsync("modpack");
+    }
+
+    private async Task SearchAndInstallAsync(string projectType)
+    {
         try
         {
-            using var results = await ModrinthService.SearchAsync("", "modpack");
-            var titles = results.RootElement.GetProperty("hits").EnumerateArray()
-                .Select(hit => hit.GetProperty("title").GetString()).Take(12);
-            MessageBox.Show(string.Join(Environment.NewLine, titles), "ORBIT - Modrinth modpacks");
+            var query = Microsoft.VisualBasic.Interaction.InputBox("Search Modrinth:", "ORBIT", "");
+            if (string.IsNullOrWhiteSpace(query)) return;
+            using var search = await ModrinthService.SearchAsync(query, projectType);
+            var hits = search.RootElement.GetProperty("hits").EnumerateArray().Take(10).ToList();
+            if (hits.Count == 0) { MessageBox.Show("No results found."); return; }
+            var labels = hits.Select((h, i) => (i + 1) + ". " + h.GetProperty("title").GetString());
+            var pick = Microsoft.VisualBasic.Interaction.InputBox(string.Join("\n", labels) + "\n\nEnter a number to install:", "Choose content", "1");
+            if (!int.TryParse(pick, out var n) || n < 1 || n > hits.Count) return;
+            var project = hits[n - 1];
+            var id = project.GetProperty("project_id").GetString()!;
+            var name = project.GetProperty("title").GetString() ?? id;
+            using var versions = await ModrinthService.VersionsAsync(id);
+            var v = versions.RootElement.EnumerateArray().First();
+            var file = v.GetProperty("files").EnumerateArray().First();
+            var url = file.GetProperty("url").GetString()!;
+            var filename = file.GetProperty("filename").GetString()!;
+            var root = Path.Combine(DataDirectory, "instances");
+            Directory.CreateDirectory(root);
+            if (projectType == "modpack")
+            {
+                var temp = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".mrpack");
+                await ModrinthService.DownloadAsync(url, temp);
+                var folder = Path.Combine(root, Path.GetFileName(name));
+                await ModrinthService.InstallPackAsync(temp, folder);
+                File.Delete(temp);
+                MessageBox.Show("Modpack files installed to " + folder + ". Loader setup and launching this pack are not ready yet.", "ORBIT");
+            }
+            else
+            {
+                var version = VersionSelector.SelectedItem?.ToString() ?? "26.2";
+                var folder = Path.Combine(root, "Default-" + version, "mods");
+                await ModrinthService.DownloadAsync(url, Path.Combine(folder, filename));
+                MessageBox.Show("Installed " + filename + ". A compatible mod loader is required to run it.", "ORBIT");
+            }
         }
-        catch (Exception ex) { ShowError("Modrinth search failed", ex); }
+        catch (Exception ex) { ShowError("Modrinth install failed", ex); }
     }
 
     private void Settings_Click(object sender, RoutedEventArgs e) =>
