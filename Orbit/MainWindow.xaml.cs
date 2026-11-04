@@ -328,21 +328,25 @@ public partial class MainWindow : Window
 
     private async void Mods_Click(object sender, RoutedEventArgs e)
     {
-        SetPage("CUSTOMIZE YOUR GAME", "Mod Manager", "Browse and install mods from Modrinth.");
-        await SearchAndInstallAsync("mod");
+        SetPage("CUSTOMIZE YOUR GAME", "Mod Manager", "Browse and install mods from Modrinth or CurseForge.");
+        var provider = MessageBox.Show("Choose your mod source.\n\nYes = Modrinth\nNo = CurseForge", "ORBIT Mod Manager", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+        if (provider == MessageBoxResult.Yes) await SearchAndInstallAsync("mod");
+        else if (provider == MessageBoxResult.No) await SearchAndInstallCurseForgeAsync(false);
     }
 
     private async void Browse_Click(object sender, RoutedEventArgs e)
     {
-        SetPage("DISCOVER", "Modpacks", "Browse and install Modrinth modpacks.");
-        await SearchAndInstallAsync("modpack");
+        SetPage("DISCOVER", "Modpacks", "Browse and install modpacks from Modrinth or CurseForge.");
+        var provider = MessageBox.Show("Choose your modpack source.\n\nYes = Modrinth\nNo = CurseForge", "ORBIT Modpacks", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+        if (provider == MessageBoxResult.Yes) await SearchAndInstallAsync("modpack");
+        else if (provider == MessageBoxResult.No) await SearchAndInstallCurseForgeAsync(true);
     }
 
     private async Task SearchAndInstallAsync(string projectType)
     {
         try
         {
-            var query = Microsoft.VisualBasic.Interaction.InputBox("Search Modrinth:", "ORBIT", "");
+            var query = Microsoft.VisualBasic.Interaction.InputBox("Search Modrinth:", "ORBIT - Modrinth", "");
             if (string.IsNullOrWhiteSpace(query)) return;
             using var search = await ModrinthService.SearchAsync(query, projectType);
             var hits = search.RootElement.GetProperty("hits").EnumerateArray().Take(10).ToList();
@@ -354,7 +358,13 @@ public partial class MainWindow : Window
             var id = project.GetProperty("project_id").GetString()!;
             var name = project.GetProperty("title").GetString() ?? id;
             using var versions = await ModrinthService.VersionsAsync(id);
-            var v = versions.RootElement.EnumerateArray().First();
+            var gameVersion = VersionSelector.SelectedItem?.ToString() ?? "26.2";
+            var v = versions.RootElement.EnumerateArray().FirstOrDefault(x =>
+                x.GetProperty("game_versions").EnumerateArray().Any(g => g.GetString() == gameVersion));
+            if (v.ValueKind == System.Text.Json.JsonValueKind.Undefined)
+                v = versions.RootElement.EnumerateArray().FirstOrDefault();
+            if (v.ValueKind == System.Text.Json.JsonValueKind.Undefined)
+                throw new InvalidDataException("No downloadable version is available for this project.");
             var file = v.GetProperty("files").EnumerateArray().First();
             var url = file.GetProperty("url").GetString()!;
             var filename = file.GetProperty("filename").GetString()!;
@@ -364,15 +374,14 @@ public partial class MainWindow : Window
             {
                 var temp = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".mrpack");
                 await ModrinthService.DownloadAsync(url, temp);
-                var folder = Path.Combine(root, Path.GetFileName(name));
+                var folder = Path.Combine(root, MakeSafeInstanceName(name));
                 await ModrinthService.InstallPackAsync(temp, folder);
                 File.Delete(temp);
-                MessageBox.Show("Modpack files installed to " + folder + ". Loader setup and launching this pack are not ready yet.", "ORBIT");
+                MessageBox.Show("Modpack files installed to:\n" + folder + "\n\nLoader installation and launching modpacks are not connected yet.", "ORBIT");
             }
             else
             {
-                var version = VersionSelector.SelectedItem?.ToString() ?? "26.2";
-                var folder = Path.Combine(root, "Default-" + version, "mods");
+                var folder = Path.Combine(root, "Default-" + gameVersion, "mods");
                 await ModrinthService.DownloadAsync(url, Path.Combine(folder, filename));
                 MessageBox.Show("Installed " + filename + ". A compatible mod loader is required to run it.", "ORBIT");
             }
@@ -380,8 +389,89 @@ public partial class MainWindow : Window
         catch (Exception ex) { ShowError("Modrinth install failed", ex); }
     }
 
-    private void Settings_Click(object sender, RoutedEventArgs e) =>
-        SetPage("PREFERENCES", "Settings", "Java and memory settings are being connected to the game runtime.");
+    private async Task SearchAndInstallCurseForgeAsync(bool modpack)
+    {
+        try
+        {
+            if (!CurseForgeService.HasApiKey)
+            {
+                var setup = MessageBox.Show("CurseForge requires your own approved API key. Add it in ORBIT Settings first?\n\nOpen Settings now?", "CurseForge setup", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                if (setup == MessageBoxResult.Yes) Settings_Click(this, new RoutedEventArgs());
+                if (!CurseForgeService.HasApiKey) return;
+            }
+
+            var query = Microsoft.VisualBasic.Interaction.InputBox(
+                modpack ? "Search CurseForge modpacks:" : "Search CurseForge mods:",
+                modpack ? "ORBIT - CurseForge Modpacks" : "ORBIT - CurseForge Mods", "");
+            if (string.IsNullOrWhiteSpace(query)) return;
+
+            SetActivity("Searching CurseForge…");
+            var projects = await CurseForgeService.SearchAsync(query, modpack, null);
+            if (projects.Count == 0) { MessageBox.Show("No CurseForge results were found.", "ORBIT"); return; }
+            var labels = projects.Take(12).Select((p, i) => (i + 1) + ". " + p.Name + (string.IsNullOrWhiteSpace(p.Summary) ? "" : " — " + p.Summary));
+            var selection = Microsoft.VisualBasic.Interaction.InputBox(
+                string.Join("\n\n", labels) + "\n\nEnter a number to install:",
+                "Choose CurseForge content", "1");
+            if (!int.TryParse(selection, out var selected) || selected < 1 || selected > Math.Min(12, projects.Count)) return;
+
+            var project = projects[selected - 1];
+            var gameVersion = VersionSelector.SelectedItem?.ToString() ?? "26.2";
+            var instanceRoot = Path.Combine(DataDirectory, "instances");
+            Directory.CreateDirectory(instanceRoot);
+            var instanceName = MakeSafeInstanceName(project.Name);
+            var folder = Path.Combine(instanceRoot, instanceName);
+
+            SetActivity("Installing " + project.Name + " from CurseForge…");
+            if (modpack)
+            {
+                await CurseForgeService.InstallModpackAsync(project, gameVersion, folder);
+                SetActivity("CurseForge modpack files installed. Loader setup and launch support are the next step.");
+                MessageBox.Show($"Installed {project.Name} to:\n{folder}\n\nORBIT still needs to install the pack's Forge/Fabric/NeoForge loader and connect this instance to Play.", "ORBIT");
+            }
+            else
+            {
+                var modsFolder = Path.Combine(instanceRoot, "Default-" + gameVersion, "mods");
+                await CurseForgeService.InstallModAsync(project, gameVersion, modsFolder);
+                SetActivity("Installed " + project.Name + " from CurseForge.");
+                MessageBox.Show($"Installed {project.Name} into Default-{gameVersion}.\n\nA compatible mod loader is required to load this mod.", "ORBIT");
+            }
+        }
+        catch (Exception ex)
+        {
+            SetActivity("CurseForge operation failed.");
+            ShowError("CurseForge install failed", ex);
+        }
+    }
+
+    private static string MakeSafeInstanceName(string value)
+    {
+        foreach (var invalid in Path.GetInvalidFileNameChars()) value = value.Replace(invalid, '-');
+        return string.IsNullOrWhiteSpace(value) ? "New-Modpack" : value.Trim();
+    }
+
+    private void Settings_Click(object sender, RoutedEventArgs e)
+    {
+        SetPage("PREFERENCES", "Settings", "Configure your game and content providers.");
+        var action = MessageBox.Show(
+            "CurseForge API key settings\n\nYes = Add or replace API key\nNo = Remove saved key\nCancel = Keep current setting",
+            "ORBIT Settings", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+        if (action == MessageBoxResult.Yes)
+        {
+            var key = Microsoft.VisualBasic.Interaction.InputBox(
+                "Paste your approved CurseForge API key. It will be encrypted for this Windows account and stored locally, not committed to GitHub.",
+                "CurseForge API key", "");
+            if (!string.IsNullOrWhiteSpace(key))
+            {
+                CurseForgeService.SaveApiKey(key);
+                MessageBox.Show("CurseForge API key saved securely for this Windows account.", "ORBIT");
+            }
+        }
+        else if (action == MessageBoxResult.No)
+        {
+            CurseForgeService.SaveApiKey("");
+            MessageBox.Show("Saved CurseForge API key removed.", "ORBIT");
+        }
+    }
 
     private void VersionSelector_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
