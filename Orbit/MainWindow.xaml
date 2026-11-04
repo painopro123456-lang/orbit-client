@@ -109,8 +109,20 @@
         <Border Style="{StaticResource Card}" Padding="20">
          <StackPanel>
           <TextBlock x:Name="ModpackSourceTitle" Text="Modrinth modpacks" FontSize="16" FontWeight="SemiBold"/>
-          <TextBlock x:Name="ModpackSourceDescription" Text="Search Modrinth and install a modpack into its own instance." Foreground="#9EACBE" FontSize="10" Margin="0,6,0,15" TextWrapping="Wrap"/>
-          <Button x:Name="BrowseModpacksButton" Content="Browse modpacks" HorizontalAlignment="Left" Background="#B3A8FF" BorderBrush="#D0C9FF" Foreground="#171522" FontWeight="Bold" Click="BrowseModpacks_Click"/>
+          <TextBlock x:Name="ModpackSourceDescription" Text="Search, compare and install modpacks without numbered pop-ups." Foreground="#9EACBE" FontSize="10" Margin="0,6,0,15" TextWrapping="Wrap"/>
+          <Grid Margin="0,0,0,14">
+           <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+           <TextBox x:Name="ContentSearchBox" Height="42" Padding="13,10" FontSize="12" Background="#0C131D" Foreground="#F4F6FB" BorderBrush="#35445A" BorderThickness="1" VerticalContentAlignment="Center" Text=""/>
+           <Button Grid.Column="1" Content="Search" Margin="9,0,0,0" Background="#B3A8FF" Foreground="#171522" FontWeight="Bold" Click="SearchContent_Click"/>
+          </Grid>
+          <TextBlock x:Name="SearchStatusText" Text="Search Modrinth or CurseForge to discover modpacks." Foreground="#93A1B5" FontSize="10" Margin="0,0,0,10"/>
+          <ListBox x:Name="SearchResultsList" Background="Transparent" BorderThickness="0" Foreground="#F4F6FB" MinHeight="80" MaxHeight="330" SelectionMode="Single">
+           <ListBox.ItemTemplate><DataTemplate><Border Background="#172231" BorderBrush="#2C3B4E" BorderThickness="1" CornerRadius="12" Padding="13" Margin="0,0,0,8"><StackPanel><TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"/><TextBlock Text="{Binding Summary}" Foreground="#9EACBE" FontSize="10" TextWrapping="Wrap" Margin="0,5,0,0"/><TextBlock Text="{Binding Meta}" Foreground="#B8ACFF" FontSize="9" Margin="0,7,0,0"/></StackPanel></Border></DataTemplate></ListBox.ItemTemplate>
+          </ListBox>
+          <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+           <Button x:Name="InstallSelectedButton" Content="Install selected modpack" Background="#B3A8FF" BorderBrush="#D0C9FF" Foreground="#171522" FontWeight="Bold" Click="InstallSelected_Click" IsEnabled="False"/>
+           <Button Content="Installed mods  →" Margin="9,0,0,0" Click="OpenInstalledMods_Click"/>
+          </StackPanel>
          </StackPanel>
         </Border>
        </StackPanel>
