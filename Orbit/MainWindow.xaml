@@ -43,8 +43,8 @@
      <TextBlock Grid.Row="1" Text="YOUR SPACE" Foreground="#69758B" FontSize="9" FontWeight="Bold" VerticalAlignment="Center" Margin="10,0"/>
      <StackPanel Grid.Row="2">
       <Button Style="{StaticResource NavButton}" Content="◈    Overview" Background="#222039" Foreground="#E3DFFF" Click="Home_Click"/>
-      <Button Style="{StaticResource NavButton}" Content="▦    Instances" Click="Instances_Click"/>
-      <Button Style="{StaticResource NavButton}" Content="◇    Mods &amp; Modpacks" Click="Mods_Click"/>
+      <Button Style="{StaticResource NavButton}" Content="▦    Modpacks" Click="Instances_Click"/>
+      <Button Style="{StaticResource NavButton}" Content="◇    Mods" Click="Mods_Click"/>
       <Button Style="{StaticResource NavButton}" Content="⌕    Discover" Click="Browse_Click"/>
      </StackPanel>
      <StackPanel Grid.Row="4">
@@ -77,7 +77,7 @@
       <StackPanel Margin="0,12,0,0"><TextBlock x:Name="ActivityText" Text="Preparing ORBIT…" Foreground="#9AA5B8" FontSize="9" Margin="2,0,0,6"/><ProgressBar x:Name="InstallProgress" Height="4" Minimum="0" Maximum="100" Value="0" Background="#1C2432" Foreground="#A99BFF" BorderThickness="0"/></StackPanel>
       <Grid Margin="0,19,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
        <Border Grid.Column="0" Style="{StaticResource Card}" Padding="16" Margin="0,0,8,0"><StackPanel><TextBlock Text="GAME VERSION" Style="{StaticResource Eyebrow}"/><StackPanel Orientation="Horizontal" Margin="0,9,0,2"><TextBlock x:Name="SelectedVersionText" Text="26.2" FontSize="24" FontWeight="SemiBold"/><Border Background="#202C32" CornerRadius="5" Padding="6,3" Margin="9,7,0,4"><TextBlock Text="TARGET" Foreground="#92CBB0" FontSize="8" FontWeight="Bold"/></Border></StackPanel><TextBlock Text="Choose your Minecraft release" Foreground="#91A1B4" FontSize="9"/></StackPanel></Border>
-       <Border Grid.Column="1" Style="{StaticResource Card}" Padding="16" Margin="4,0"><StackPanel><TextBlock Text="YOUR INSTANCES" Style="{StaticResource Eyebrow}"/><TextBlock Text="Ready when you are" FontSize="16" FontWeight="SemiBold" Margin="0,11,0,3"/><TextBlock Text="Create separate game profiles" Foreground="#91A1B4" FontSize="9"/></StackPanel></Border>
+       <Border Grid.Column="1" Style="{StaticResource Card}" Padding="16" Margin="4,0"><StackPanel><TextBlock Text="YOUR MODPACKS" Style="{StaticResource Eyebrow}"/><TextBlock Text="Ready when you are" FontSize="16" FontWeight="SemiBold" Margin="0,11,0,3"/><TextBlock Text="Create separate game profiles" Foreground="#91A1B4" FontSize="9"/></StackPanel></Border>
        <Border Grid.Column="2" Style="{StaticResource Card}" Padding="16" Margin="8,0,0,0"><StackPanel><TextBlock Text="MOD ECOSYSTEM" Style="{StaticResource Eyebrow}"/><TextBlock Text="Make it yours" FontSize="16" FontWeight="SemiBold" Margin="0,11,0,3"/><TextBlock Text="Modrinth  •  CurseForge" Foreground="#91A1B4" FontSize="9"/></StackPanel></Border>
       </Grid>
       <Grid Margin="0,20,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="1.2*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
@@ -88,15 +88,27 @@
      </StackPanel>
       <StackPanel x:Name="LibraryPanel" Visibility="Collapsed">
        <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
-        <Button x:Name="InstancesTabButton" Content="Instances" Background="#282440" BorderBrush="#625A96" Click="InstancesTab_Click"/>
-        <Button x:Name="ModpacksTabButton" Content="Modpacks" Margin="8,0,0,0" Click="ModpacksTab_Click"/>
+        <Button x:Name="InstancesTabButton" Content="My Modpacks" Background="#282440" BorderBrush="#625A96" Click="InstancesTab_Click"/>
+        <Button x:Name="ModpacksTabButton" Content="Browse Modpacks" Margin="8,0,0,0" Click="ModpacksTab_Click"/>
        </StackPanel>
        <StackPanel x:Name="InstancesTabPanel">
         <TextBlock Text="YOUR INSTANCES" Style="{StaticResource Eyebrow}"/>
-        <TextBlock Text="Your game profiles" FontSize="19" FontWeight="SemiBold" Margin="0,5,0,12"/>
-        <TextBlock x:Name="InstancesEmptyText" Text="No instances yet. Install a modpack to create your first one." Foreground="#9EACBE" FontSize="11" Margin="0,4,0,14"/>
-        <ItemsControl x:Name="InstanceList"/>
-        <Button Content="Refresh instances" HorizontalAlignment="Left" Margin="0,12,0,0" Click="RefreshInstances_Click"/>
+        <TextBlock Text="Your modpack library" FontSize="19" FontWeight="SemiBold" Margin="0,5,0,12"/>
+        <TextBlock x:Name="InstancesEmptyText" Text="No modpacks installed yet. Browse Modrinth or CurseForge to add your first one." Foreground="#9EACBE" FontSize="11" Margin="0,4,0,14"/>
+        <ItemsControl x:Name="InstanceList" Margin="0,8,0,0">
+         <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+         <ItemsControl.ItemTemplate><DataTemplate>
+          <Border Background="#151F2D" BorderBrush="#34445A" BorderThickness="1" CornerRadius="17" Padding="17" Margin="0,0,12,12" Effect="{StaticResource SoftShadow}">
+           <Grid>
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <Grid><Border Width="42" Height="42" CornerRadius="13" Background="#302B50" HorizontalAlignment="Left"><TextBlock Text="✦" Foreground="#D0C8FF" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><Border HorizontalAlignment="Right" Background="#202D31" CornerRadius="7" Padding="8,4"><TextBlock Text="INSTALLED" Foreground="#91D3B4" FontSize="8" FontWeight="Bold"/></Border></Grid>
+            <TextBlock Grid.Row="1" Text="{Binding}" FontSize="16" FontWeight="SemiBold" Foreground="#F4F6FB" Margin="0,15,0,5" TextTrimming="CharacterEllipsis"/>
+            <TextBlock Grid.Row="2" Text="Modpack instance  •  ORBIT library" FontSize="9" Foreground="#95A4B8"/>
+           </Grid>
+          </Border>
+         </DataTemplate></ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button Content="Refresh library" HorizontalAlignment="Left" Margin="0,12,0,0" Click="RefreshInstances_Click"/>
        </StackPanel>
        <StackPanel x:Name="ModpacksTabPanel" Visibility="Collapsed">
         <TextBlock Text="MODPACK LIBRARY" Style="{StaticResource Eyebrow}"/>
@@ -121,7 +133,7 @@
           </ListBox>
           <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
            <Button x:Name="InstallSelectedButton" Content="Install selected modpack" Background="#B3A8FF" BorderBrush="#D0C9FF" Foreground="#171522" FontWeight="Bold" Click="InstallSelected_Click" IsEnabled="False"/>
-           <Button Content="Installed mods  →" Margin="9,0,0,0" Click="OpenInstalledMods_Click"/>
+           <Button Content="Open Mods  →" Margin="9,0,0,0" Click="OpenInstalledMods_Click"/>
           </StackPanel>
          </StackPanel>
         </Border>
