@@ -18,6 +18,19 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - name: Inject private CurseForge app key
+        shell: pwsh
+        env:
+          CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+        run: |
+          $key = $env:CURSEFORGE_API_KEY
+          if ([string]::IsNullOrWhiteSpace($key)) {
+            $source = 'namespace Orbit; internal static class CurseForgeBuildConfig { internal static string? ApiKey => null; }'
+          } else {
+            $encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($key))
+            $source = "namespace Orbit; internal static class CurseForgeBuildConfig { internal static string ApiKey => System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(`"$encoded`")); }"
+          }
+          Set-Content -Path Orbit/CurseForgeBuildConfig.g.cs -Value $source -Encoding utf8
       - name: Publish self-contained Windows app
         run: dotnet publish Orbit/Orbit.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o publish
       - name: Upload ORBIT executable
