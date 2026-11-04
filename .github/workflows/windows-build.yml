@@ -7,7 +7,7 @@ on:
       - 'Orbit/**'
       - '.github/workflows/windows-build.yml'
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     runs-on: windows-latest
@@ -26,3 +26,15 @@ jobs:
           name: ORBIT-Windows-x64
           path: publish/ORBIT.exe
           if-no-files-found: error
+      - name: Publish direct EXE download to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: ORBIT - Latest Windows Build
+          body: |
+            Latest standalone ORBIT launcher for Windows x64.
+            Download ORBIT.exe directly. No ZIP extraction required.
+          files: publish/ORBIT.exe
+          overwrite_files: true
+          make_latest: true
+          fail_on_unmatched_files: true
