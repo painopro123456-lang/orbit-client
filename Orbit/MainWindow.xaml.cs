@@ -326,11 +326,31 @@ public partial class MainWindow : Window
     private void Instances_Click(object sender, RoutedEventArgs e) =>
         SetPage("YOUR LIBRARY", "Instances", "Instance management is the next ORBIT milestone.");
 
-    private void Mods_Click(object sender, RoutedEventArgs e) =>
-        SetPage("CUSTOMIZE YOUR GAME", "Mods & Modpacks", "Modrinth and CurseForge integration is the next ORBIT milestone.");
+    private async void Mods_Click(object sender, RoutedEventArgs e)
+    {
+        SetPage("CUSTOMIZE YOUR GAME", "Mod Manager", "Browse Modrinth mods and manage instance files.");
+        try
+        {
+            using var results = await ModrinthService.SearchAsync("", "mod");
+            var titles = results.RootElement.GetProperty("hits").EnumerateArray()
+                .Select(hit => hit.GetProperty("title").GetString()).Take(12);
+            MessageBox.Show(string.Join(Environment.NewLine, titles), "ORBIT - Modrinth mods");
+        }
+        catch (Exception ex) { ShowError("Modrinth search failed", ex); }
+    }
 
-    private void Browse_Click(object sender, RoutedEventArgs e) =>
-        SetPage("DISCOVER", "Browse", "Explore modpacks, mods and supported game content.");
+    private async void Browse_Click(object sender, RoutedEventArgs e)
+    {
+        SetPage("DISCOVER", "Modpacks", "Browse Modrinth modpacks.");
+        try
+        {
+            using var results = await ModrinthService.SearchAsync("", "modpack");
+            var titles = results.RootElement.GetProperty("hits").EnumerateArray()
+                .Select(hit => hit.GetProperty("title").GetString()).Take(12);
+            MessageBox.Show(string.Join(Environment.NewLine, titles), "ORBIT - Modrinth modpacks");
+        }
+        catch (Exception ex) { ShowError("Modrinth search failed", ex); }
+    }
 
     private void Settings_Click(object sender, RoutedEventArgs e) =>
         SetPage("PREFERENCES", "Settings", "Java and memory settings are being connected to the game runtime.");
