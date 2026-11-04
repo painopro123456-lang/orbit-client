@@ -28,4 +28,4 @@ dotnet publish Orbit/Orbit.csproj -c Release -r win-x64 --self-contained true -p
 ```
 
 ## Current limitations
-This milestone implements Microsoft authentication and vanilla Minecraft installation/launch. Separate instance management, Fabric/Forge/NeoForge/Quilt installers, Modrinth/CurseForge integration, and automatic launcher updates are still pending. Compatibility with the newest Minecraft releases depends on the metadata and runtime support in the current CmlLib release.
+This milestone implements Microsoft authentication and vanilla Minecraft installation/launch. CurseForge requires the user to supply an approved API key from https://console.curseforge.com/. Modrinth and CurseForge downloads are implemented, but loader installation (Fabric/Forge/NeoForge/Quilt), full instance selection/launch integration for modpacks, a visual installed-mod manager, and automatic launcher updates are still pending. Mod files will not load in vanilla Minecraft without the matching mod loader. Compatibility with the newest Minecraft releases depends on the metadata and runtime support in the current CmlLib release.
