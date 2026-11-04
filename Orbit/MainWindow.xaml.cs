@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Collections.ObjectModel;
+using System.Text.Json;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -26,6 +28,8 @@ public partial class MainWindow : Window
     private Process? _gameProcess;
     private bool _busy;
     private string _modpackSource = "Modrinth";
+    private readonly ObservableCollection<ModpackSearchResult> _searchResults = new();
+    private readonly ObservableCollection<InstalledModItem> _installedMods = new();
 
     public MainWindow()
     {
@@ -338,6 +342,7 @@ public partial class MainWindow : Window
     {
         HomePanel.Visibility = Visibility.Collapsed;
         LibraryPanel.Visibility = Visibility.Visible;
+        InstalledModsPanel.Visibility = Visibility.Collapsed;
         SetPage("YOUR LIBRARY", "Instances", "Your game profiles and installed modpacks, together.");
         if (showModpacks) ShowModpacksTab();
         else ShowInstancesTab();
@@ -351,6 +356,7 @@ public partial class MainWindow : Window
     {
         InstancesTabPanel.Visibility = Visibility.Visible;
         ModpacksTabPanel.Visibility = Visibility.Collapsed;
+        InstalledModsPanel.Visibility = Visibility.Collapsed;
         InstancesTabButton.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(40, 36, 64));
         InstancesTabButton.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(98, 90, 150));
         ModpacksTabButton.ClearValue(System.Windows.Controls.Control.BackgroundProperty);
@@ -361,6 +367,7 @@ public partial class MainWindow : Window
     {
         InstancesTabPanel.Visibility = Visibility.Collapsed;
         ModpacksTabPanel.Visibility = Visibility.Visible;
+        InstalledModsPanel.Visibility = Visibility.Collapsed;
         ModpacksTabButton.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(40, 36, 64));
         ModpacksTabButton.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(98, 90, 150));
         InstancesTabButton.ClearValue(System.Windows.Controls.Control.BackgroundProperty);
@@ -388,12 +395,221 @@ public partial class MainWindow : Window
 
     private async void BrowseModpacks_Click(object sender, RoutedEventArgs e)
     {
+        ShowLibraryPage(true);
+        await SearchContentAsync();
+    }
+
+    private async void SearchContent_Click(object sender, RoutedEventArgs e) => await SearchContentAsync();
+
+    private async Task SearchContentAsync()
+    {
         if (_busy) return;
-        if (_modpackSource == "Modrinth")
-            await SearchAndInstallAsync("modpack");
-        else
-            await SearchAndInstallCurseForgeAsync(true);
-        RefreshInstances();
+        var query = ContentSearchBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            SearchStatusText.Text = "Enter a name or keyword to search modpacks.";
+            return;
+        }
+
+        try
+        {
+            SetBusy(true, "Searching " + _modpackSource + "…");
+            SearchResultsList.ItemsSource = null;
+            _searchResults.Clear();
+            if (_modpackSource == "Modrinth")
+            {
+                using var document = await ModrinthService.SearchAsync(query, "modpack");
+                foreach (var hit in document.RootElement.GetProperty("hits").EnumerateArray())
+                {
+                    _searchResults.Add(new ModpackSearchResult
+                    {
+                        Id = hit.GetProperty("project_id").GetString() ?? "",
+                        Name = hit.GetProperty("title").GetString() ?? "Unnamed modpack",
+                        Summary = hit.TryGetProperty("description", out var desc) ? desc.GetString() ?? "" : "",
+                        Meta = $"Modrinth  •  {ReadInt(hit, "downloads"):N0} downloads",
+                        Source = "Modrinth"
+                    });
+                }
+            }
+            else
+            {
+                if (!CurseForgeService.HasApiKey)
+                    throw new InvalidOperationException("CurseForge requires an approved API key. Add it in Settings first.");
+                var projects = await CurseForgeService.SearchAsync(query, true, VersionSelector.SelectedItem?.ToString());
+                foreach (var project in projects)
+                    _searchResults.Add(new ModpackSearchResult
+                    {
+                        Id = project.Id.ToString(),
+                        Name = project.Name,
+                        Summary = project.Summary,
+                        Meta = "CurseForge  •  Modpack",
+                        Source = "CurseForge",
+                        CurseForgeProject = project
+                    });
+            }
+
+            SearchResultsList.ItemsSource = _searchResults;
+            SearchStatusText.Text = _searchResults.Count == 0
+                ? "No modpacks found. Try another search."
+                : $"{_searchResults.Count} modpacks found. Select one, then install it.";
+            SetActivity(_searchResults.Count == 0 ? "No matching modpacks." : "Modpack search complete.");
+        }
+        catch (Exception ex)
+        {
+            SearchStatusText.Text = "Search failed: " + ex.Message;
+            SetActivity("Modpack search failed.");
+            ShowError("ORBIT search failed", ex);
+        }
+        finally { SetBusy(false); }
+    }
+
+    private static int ReadInt(JsonElement element, string name) =>
+        element.TryGetProperty(name, out var value) && value.TryGetInt32(out var number) ? number : 0;
+
+    private async void InstallSelected_Click(object sender, RoutedEventArgs e)
+    {
+        if (_busy) return;
+        if (SearchResultsList.SelectedItem is not ModpackSearchResult selected)
+        {
+            SearchStatusText.Text = "Select a modpack first.";
+            return;
+        }
+
+        var root = Path.Combine(DataDirectory, "instances");
+        Directory.CreateDirectory(root);
+        var folder = Path.Combine(root, MakeSafeInstanceName(selected.Name));
+        if (Directory.Exists(folder) && Directory.GetFileSystemEntries(folder).Length > 0)
+        {
+            MessageBox.Show("An instance with this name already exists. Rename or remove it before installing this pack again.", "ORBIT");
+            return;
+        }
+
+        try
+        {
+            SetBusy(true, "Installing " + selected.Name + "…");
+            InstallSelectedButton.IsEnabled = false;
+            if (selected.Source == "Modrinth")
+            {
+                using var versions = await ModrinthService.VersionsAsync(selected.Id);
+                var gameVersion = VersionSelector.SelectedItem?.ToString() ?? "26.2";
+                var compatible = versions.RootElement.EnumerateArray().FirstOrDefault(v =>
+                    v.TryGetProperty("game_versions", out var gameVersions) &&
+                    gameVersions.EnumerateArray().Any(g => g.GetString() == gameVersion));
+                if (compatible.ValueKind == JsonValueKind.Undefined)
+                    compatible = versions.RootElement.EnumerateArray().FirstOrDefault();
+                if (compatible.ValueKind == JsonValueKind.Undefined)
+                    throw new InvalidDataException("No downloadable version is available for this modpack.");
+                var file = compatible.GetProperty("files").EnumerateArray()
+                    .FirstOrDefault(f => f.TryGetProperty("primary", out var primary) && primary.GetBoolean());
+                if (file.ValueKind == JsonValueKind.Undefined)
+                    file = compatible.GetProperty("files").EnumerateArray().First();
+                var url = file.GetProperty("url").GetString()!;
+                var temp = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".mrpack");
+                try
+                {
+                    await ModrinthService.DownloadAsync(url, temp);
+                    await ModrinthService.InstallPackAsync(temp, folder);
+                }
+                finally { if (File.Exists(temp)) File.Delete(temp); }
+            }
+            else
+            {
+                if (selected.CurseForgeProject is null)
+                    throw new InvalidDataException("The selected CurseForge project metadata is missing.");
+                await CurseForgeService.InstallModpackAsync(selected.CurseForgeProject,
+                    VersionSelector.SelectedItem?.ToString() ?? "26.2", folder);
+            }
+
+            SearchStatusText.Text = $"Installed {selected.Name}. Instance created in your library.";
+            SetActivity($"Installed {selected.Name}. Loader setup is still required before this pack can launch.");
+            MessageBox.Show($"Installed {selected.Name}.\n\nThe files are in your ORBIT instances library. This release does not yet install the pack's Fabric/Forge/NeoForge runtime automatically, so the pack may not launch until that loader integration is added.", "ORBIT");
+            RefreshInstances();
+        }
+        catch (Exception ex)
+        {
+            SetActivity("Modpack installation failed.");
+            SearchStatusText.Text = "Install failed: " + ex.Message;
+            ShowError("Modpack installation failed", ex);
+        }
+        finally
+        {
+            SetBusy(false);
+            InstallSelectedButton.IsEnabled = SearchResultsList.SelectedItem is not null;
+        }
+    }
+
+    private void OpenInstalledMods_Click(object sender, RoutedEventArgs e)
+    {
+        InstancesTabPanel.Visibility = Visibility.Collapsed;
+        ModpacksTabPanel.Visibility = Visibility.Collapsed;
+        InstalledModsPanel.Visibility = Visibility.Visible;
+        SetPage("YOUR LIBRARY", "Installed mods", "Enable, disable and remove JAR files in each instance.");
+        RefreshModInstanceChoices();
+    }
+
+    private void BackToModpacks_Click(object sender, RoutedEventArgs e) => ShowModpacksTab();
+
+    private void RefreshModInstanceChoices()
+    {
+        var root = Path.Combine(DataDirectory, "instances");
+        Directory.CreateDirectory(root);
+        var folders = Directory.GetDirectories(root).Select(Path.GetFileName)
+            .Where(n => !string.IsNullOrWhiteSpace(n)).OrderBy(n => n).ToList();
+        ModInstanceSelector.ItemsSource = folders;
+        if (folders.Count > 0 && ModInstanceSelector.SelectedIndex < 0) ModInstanceSelector.SelectedIndex = 0;
+        RefreshInstalledMods();
+    }
+
+    private void ModInstanceSelector_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) => RefreshInstalledMods();
+
+    private string? SelectedModsDirectory()
+    {
+        var instance = ModInstanceSelector.SelectedItem?.ToString();
+        if (string.IsNullOrWhiteSpace(instance)) return null;
+        return Path.Combine(DataDirectory, "instances", instance, "mods");
+    }
+
+    private void RefreshInstalledMods()
+    {
+        if (InstalledModsList is null) return;
+        _installedMods.Clear();
+        var folder = SelectedModsDirectory();
+        if (folder is not null && Directory.Exists(folder))
+        {
+            foreach (var file in Directory.GetFiles(folder).Where(f =>
+                f.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) ||
+                f.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase)).OrderBy(f => f))
+            {
+                var disabled = file.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase);
+                var info = new FileInfo(file);
+                _installedMods.Add(new InstalledModItem
+                {
+                    Path = file,
+                    Name = Path.GetFileName(file).Replace(".jar.disabled", "", StringComparison.OrdinalIgnoreCase),
+                    State = disabled ? "Disabled" : "Enabled",
+                    FileSize = $"{Math.Max(1, info.Length / 1024):N0} KB",
+                    Disabled = disabled
+                });
+            }
+        }
+        InstalledModsList.ItemsSource = _installedMods;
+    }
+
+    private void ToggleMod_Click(object sender, RoutedEventArgs e)
+    {
+        if (InstalledModsList.SelectedItem is not InstalledModItem mod) return;
+        var target = mod.Disabled ? mod.Path[..^".disabled".Length] : mod.Path + ".disabled";
+        try { File.Move(mod.Path, target); RefreshInstalledMods(); }
+        catch (Exception ex) { ShowError("Could not change mod state", ex); }
+    }
+
+    private void RemoveMod_Click(object sender, RoutedEventArgs e)
+    {
+        if (InstalledModsList.SelectedItem is not InstalledModItem mod) return;
+        var confirm = MessageBox.Show($"Remove {mod.Name} from this instance?", "Remove mod", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        if (confirm != MessageBoxResult.Yes) return;
+        try { File.Delete(mod.Path); RefreshInstalledMods(); }
+        catch (Exception ex) { ShowError("Could not remove mod", ex); }
     }
 
     private void RefreshInstances_Click(object sender, RoutedEventArgs e) => RefreshInstances();
@@ -547,4 +763,23 @@ public partial class MainWindow : Window
         if (SelectedVersionText is not null && VersionSelector.SelectedItem is not null)
             SelectedVersionText.Text = VersionSelector.SelectedItem.ToString()!;
     }
+}
+
+internal sealed class ModpackSearchResult
+{
+    public string Id { get; init; } = "";
+    public string Name { get; init; } = "";
+    public string Summary { get; init; } = "";
+    public string Meta { get; init; } = "";
+    public string Source { get; init; } = "";
+    public CurseForgeService.Project? CurseForgeProject { get; init; }
+}
+
+internal sealed class InstalledModItem
+{
+    public string Path { get; init; } = "";
+    public string Name { get; init; } = "";
+    public string State { get; init; } = "";
+    public string FileSize { get; init; } = "";
+    public bool Disabled { get; init; }
 }
